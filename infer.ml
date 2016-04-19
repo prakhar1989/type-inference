@@ -247,5 +247,3 @@ let run () =
     Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10))))] in
   List.iter (fun e -> let ids = get_ids e in debug e ids; print_endline "") testcases
 ;;
-
-run ();
