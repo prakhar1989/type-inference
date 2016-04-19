@@ -42,12 +42,38 @@ let gen_new_type () =
   incr type_variable; T(Char.escaped (Char.chr c1))
 ;;
 
-(*
-   In this function we take an expression and
-   an environment, and we annotate it with either
-   1. A concrete primitive type (e.g bool, num etc)
-   2. Or a unique generated type placeholder e.g 'a, 'b
-*)
+(***************************************************************|
+|*******************Annotate Expressions************************|
+|***************************************************************|
+| Arguments:                                                    |  
+|   e -> An expression that has to be annotated                 |
+|   env -> An environment map that holds type information of    |
+|   user defined variables(in our case values)                  |
+|***************************************************************|
+| Returns:                                                      |
+|   returns an annotated expression of type aexpr that holds    |
+|   type information for the given expression.                  |
+|***************************************************************| 
+| - This method takes every expression/sub-expression in the    |
+|   program and assigns some type information to it.            |
+| - This type information maybe something concrete like a TNum  |
+|   or it could be a unique parameterized type(placeholder) such|
+|   as 'a.                                                      |
+| - Concrete types are usually assigned when you encounter      |
+|   simple literals like 10, true and "hello" and also when the |
+|   user has explicity annotated his program with types.        |
+| - Whereas, a random type placeholder is assigned when no      |
+|   explicit information is available.                          |
+| - It may not seem so, but this is a very important function.  |
+|   It is a fundamental step in approaching and understanding   |
+|   the HMT algorithm that will follow further.                 |
+| - HMT algorithm not only infers types of variables and        |
+|   functions defined by user but also of every expression and  |
+|   sub-expression since most of the inference happens from     |
+|   analyzing these expressions only.                           |
+| - Hence, this function preps our program for the next steps of|
+|   HMT.                                                        |
+|***************************************************************)
 let rec annotate_expr (e: expr) (env: environment) : aexpr =
   match e with
   | NumLit(n) -> ANumLit(n, TNum)
