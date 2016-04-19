@@ -1,6 +1,6 @@
 infer:
-	ocamlc -o infer.out type_infer.ml
+	ocamlbuild -j 0 -r -use-ocamlfind infer.native
 
 .PHONY: clean
 clean:
-	rm *.cm*
+	ocamlbuild -clean
