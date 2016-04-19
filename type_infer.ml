@@ -79,7 +79,7 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
   match ae with
   | ANumLit(_) | ABoolLit(_) -> []  (* no constraints to impose on literals *)
   | AVal(_) -> []                   (* single occurence of val gives us no info *)
-  | ABinop(ae1, op, ae2, t) ->      
+  | ABinop(ae1, op, ae2, t) ->
     let et1 = type_of ae1 and et2 = type_of ae2 in
 
     (* impose constraints based on binary operator *)
@@ -95,9 +95,24 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
       | _ -> raise (failwith "not a function"))
 ;;
 
-(* t -> type to be resolved; 
-   (x, u) -> (type placeholder, resolved substitution);
-   returns a valid substitution for t if present, else t as it is.  *)
+(******************************************************************|
+|*************************Substitute*******************************|
+|******************************************************************|
+|Arguments:                                                        |
+|   t -> type in which substitutions have to be made.              |
+|   (x, u) -> (type placeholder, resolved substitution)            |
+|******************************************************************|
+|Returns:                                                          |
+|   returns a valid substitution for t if present, else t as it is.|
+|******************************************************************|
+|- In this method we are given a substitution rule that asks us to |
+|  replace all occurences of type placeholder x with u, in t.      |
+|- We are required to apply this substitution to t recursively, so |
+|  if t is a composite type that contains multiple occurrences of  |
+|  x then at every position of x, a u is to be substituted.        |
+|- e.g. u -> TNum, x -> 'a, t -> TFun('a, TBool). After            |
+|  substitution we will end up with TFun(TNum, TBool).             |
+*******************************************************************)
 let rec substitute (u: primitiveType) (x: id) (t: primitiveType) : primitiveType =
   match t with
   | TNum | TBool -> t
@@ -105,14 +120,33 @@ let rec substitute (u: primitiveType) (x: id) (t: primitiveType) : primitiveType
   | TFun(t1, t2) -> TFun(substitute u x t1, substitute u x t2)
 ;;
 
-(* takes a list of substitutions and an unresolved type t and returns 
-   a resolved type based on those substitutions.  To note: Works from right to left *)
+(******************************************************************|
+|*****************************Apply********************************|
+|******************************************************************|
+|Arguments:                                                        |
+|   subs -> list of substitution rules.                            |
+|   t -> type in which substiutions have to be made.               |
+|******************************************************************|
+|Returns:                                                          |
+|   returns t after all the substitutions have been made in it     |
+|   given by all the substitution rules in subs.                   |
+|******************************************************************|
+| - Works from right to left                                       |
+| - Effectively what this function does is that it uses            |
+|   substitution rules generated from the unification algorithm and|
+|   applies it to t. Internally it calls the substitute function   |
+|   which does the actual substitution and returns the resultant   |
+|   type after substitutions.                                      |
+| - Substitution rules: (type placeholder, primitiveType), where we|
+|   have to replace each occurence of the type placeholder with the|
+|   given primitive type.
+|******************************************************************)
 let apply (subs: substitutions) (t: primitiveType) : primitiveType =
   List.fold_right (fun (x, u) t -> substitute u x t) subs t
 ;;
 
 (* we define two mutually recursive functions that implements the unification algorithm in HMT.
-   Unify: takes a list of contraints and returns a list of substitutions *)
+   Unify: takes a list of constraints and returns a list of substitutions *)
 let rec unify (constraints: (primitiveType * primitiveType) list) : substitutions =
   match constraints with
   | [] -> []
@@ -141,7 +175,7 @@ let rec apply_expr (subs: substitutions) (ae: aexpr): aexpr =
   | AFun(id, e, t) -> AFun(id, apply_expr subs e, apply subs t)
 ;;
 
-(* runs HMTI step-by-step 
+(* runs HMTI step-by-step
    1. annotate expression with placeholder types
    2. generate constraints
    3. unify types based on constraints
@@ -167,12 +201,12 @@ let string_of_op (op: op) =
   match op with
   | Add -> "+" | Mul -> "*" | Lte -> "<=" | Gte -> ">=" ;;
 
-let rec string_of_aexpr (ae: aexpr): string = 
+let rec string_of_aexpr (ae: aexpr): string =
   match ae with
   | ANumLit(x, t)  -> Printf.sprintf "(%s: %s)" (string_of_int x) (string_of_type t)
   | ABoolLit(b, t) -> Printf.sprintf "(%s: %s)" (string_of_bool b) (string_of_type t)
   | AVal(x, t) -> Printf.sprintf "(%s: %s)" x (string_of_type t)
-  | ABinop(e1, op, e2, t) -> 
+  | ABinop(e1, op, e2, t) ->
     let s1 = string_of_aexpr e1 in let s2 = string_of_aexpr e2 in
     let sop = string_of_op op in let st = string_of_type t in
     Printf.sprintf "(%s %s %s: %s)" s1 sop s2 st
@@ -196,7 +230,7 @@ let rec string_of_expr (e: expr): string =
 ;;
 
 (* testing *)
-let debug (e: expr) (vals: id list) =
+let debug (e: expr) (vals: string list) =
   let env = List.fold_left (fun m x -> NameMap.add x (gen_new_type ()) m) NameMap.empty vals in
   let aexpr = infer env e in
   print_endline (string_of_expr e);
