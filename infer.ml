@@ -1,7 +1,14 @@
 open Ast
 
+(*******************************************************************|
+|**********************   Environment   ****************************|
+|*******************************************************************|
+| - The environment is a map that holds type information of         |
+|   variables (in our case values)                                  |
+| - A good practice is to have a local environment and global       | 
+|   environment. This helps in implementing proper scoping rules.   |
+|*******************************************************************)
 module NameMap = Map.Make(String)
-
 type environment = primitiveType NameMap.t
 
 (* Unknown type,  resolved type. eg.[(T, TNum); (U, TBool)] *)
@@ -17,7 +24,7 @@ let gen_new_type () =
 ;;
 
 (*******************************************************************|
-|*********************Annotate Expressions**************************|
+|******************   Annotate Expressions   ***********************|
 |*******************************************************************|
 | Arguments:                                                        |
 |   e -> An expression that has to be annotated                     |
@@ -75,7 +82,7 @@ and type_of (ae: aexpr): primitiveType =
 ;;
 
 (*********************************************************************|
-|******************************Collect********************************|
+|***************************   Collect   *****************************|
 |*********************************************************************|
 |  Arguments:                                                         |
 |     ae -> an annotated expression from which a bunch of constraints |
@@ -113,8 +120,8 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
     let opc = match op with
       | Add | Mul -> [(et1, TNum); (et2, TNum); (t, TNum)]
       (* we return et1, et2 since these are generic operators *)
-      | Gt | Lt -> [(et1, et2); (t, TBool)]
-    in
+      | Gte | Lte -> [(et1, et2); (t, TBool)]
+    in 
     (* opc appended at the rightmost since we apply substitutions right to left *)
     (collect_expr ae1) @ (collect_expr ae2) @ opc
   | AFun(id, ae, t) -> (match t with
@@ -122,8 +129,15 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
       | _ -> raise (failwith "not a function"))
 ;;
 
+
 (******************************************************************|
-|*************************Substitute*******************************|
+|**********************   Unification   ***************************|
+|**********************    Algorithm    ***************************|
+|******************************************************************)
+
+
+(******************************************************************|
+|**********************   Substitute   ****************************|
 |******************************************************************|
 |Arguments:                                                        |
 |   t -> type in which substitutions have to be made.              |
@@ -148,7 +162,7 @@ let rec substitute (u: primitiveType) (x: id) (t: primitiveType) : primitiveType
 ;;
 
 (******************************************************************|
-|*****************************Apply********************************|
+|*************************    Apply   *****************************|
 |******************************************************************|
 |Arguments:                                                        |
 |   subs -> list of substitution rules.                            |
@@ -166,7 +180,7 @@ let rec substitute (u: primitiveType) (x: id) (t: primitiveType) : primitiveType
 |   type after substitutions.                                      |
 | - Substitution rules: (type placeholder, primitiveType), where we|
 |   have to replace each occurence of the type placeholder with the|
-|   given primitive type.
+|   given primitive type.                                          |
 |******************************************************************)
 let apply (subs: substitutions) (t: primitiveType) : primitiveType =
   List.fold_right (fun (x, u) t -> substitute u x t) subs t
@@ -222,28 +236,17 @@ let debug (e: expr) (vals: string list) =
   print_endline (string_of_aexpr aexpr)
 ;;
 
-let rec get_ids (e: expr): id list =
-  let rec dedup = function
-    | [] -> []
-    | x :: y :: xs when x = y -> y :: dedup xs
-    | x :: xs -> x :: dedup xs in
-  let ids = match e with
-    | NumLit(_) | BoolLit(_) -> []
-    | Val(x) -> [x]
-    | Fun(x, y) -> [x] @ (get_ids y)
-    | Binop(e1, _, e2) -> (get_ids e1) @ (get_ids e2) in
-  dedup ids
+let run () =
+  let testcases = [
+    (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Add, Val("y")), Gte, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Mul, Val("y")), Lte, Binop(Val("z"), Add, Val("w"))), ["x"; "y"; "z"; "w"]);
+    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Binop(Val("z"), Lte, Val("w"))), ["x"; "y"; "z"; "w"]);
+    (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);
+    (Fun("x", Binop(NumLit(20), Gte,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]
+  in
+  List.iter (fun (e, ids) -> debug e ids; print_endline "";) testcases
 ;;
 
-let run () =
-  (* a few hardcoded testcases *)
-  let testcases = [
-    Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z"));
-    Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z"));
-    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z"));
-    Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w")));
-    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w")));
-    Fun("x", Binop(Val("x"), Add, NumLit(10)));
-    Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10))))] in
-  List.iter (fun e -> let ids = get_ids e in debug e ids; print_endline "") testcases
-;;
+run ();
