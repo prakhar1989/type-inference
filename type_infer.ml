@@ -196,17 +196,22 @@ let rec string_of_expr (e: expr): string =
 ;;
 
 (* testing *)
-let debug (e: expr) (vals: string list) =
+let debug (e: expr) (vals: id list) =
   let env = List.fold_left (fun m x -> NameMap.add x (gen_new_type ()) m) NameMap.empty vals in
   let aexpr = infer env e in
   print_endline (string_of_expr e);
   print_endline (string_of_aexpr aexpr)
 ;;
 
-let _ = Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")) in
-let _ = Binop(Binop(Val("x"), Add, Val("y")), Gte, Val("z")) in
-let _ = Binop(Binop(Val("x"), Gte, Val("y")), Mul, Val("z")) in
-let _ = Binop(Binop(Val("x"), Gte, Val("y")), Lte, Val("z")) in
-let _ = Fun("x", Binop(Val("x"), Add, NumLit(10))) in
-let f = Fun("x", Binop(NumLit(20), Gte,Binop(Val("x"), Add, NumLit(10)))) in
-debug f ["x"; "y"] ;;
+let run () =
+  let testcases = [
+    (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Add, Val("y")), Gte, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Val("z")), ["x"; "y"; "z"]);
+    (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);
+    (Fun("x", Binop(NumLit(20), Gte,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]
+  in
+  List.iter (fun (e, ids) -> debug e ids; print_endline "";) testcases
+;;
+
+run ();
