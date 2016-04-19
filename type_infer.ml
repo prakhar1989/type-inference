@@ -186,7 +186,6 @@ let rec unify (constraints: (primitiveType * primitiveType) list) : substitution
 and unify_one (t1: primitiveType) (t2: primitiveType) : substitutions =
   match t1, t2 with
   | TNum, TNum | TBool, TBool -> []
-  | TFun(a, b), TFun(x, y) -> unify [(a, x); (b, y)]
   | T(x), z | z, T(x) -> [(x, z)]
   | _ -> raise (failwith "mismatched types")
 ;;
@@ -268,6 +267,8 @@ let run () =
     (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);
     (Binop(Binop(Val("x"), Add, Val("y")), Gte, Val("z")), ["x"; "y"; "z"]);
     (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Val("z")), ["x"; "y"; "z"]);
+    (Binop(Binop(Val("x"), Mul, Val("y")), Lte, Binop(Val("z"), Add, Val("w"))), ["x"; "y"; "z"; "w"]);
+    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Binop(Val("z"), Lte, Val("w"))), ["x"; "y"; "z"; "w"]);
     (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);
     (Fun("x", Binop(NumLit(20), Gte,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]
   in
