@@ -1,0 +1,14 @@
+.DS_Store
+*.swp
+*.out
+*.cm*
+_build
+*.log
+*.cache
+src/parser.ml
+src/parser.mli
+src/scanner.ml
+outputs
+.sass-cache
+venv
+*.native
