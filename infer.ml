@@ -5,7 +5,7 @@ open Ast
 |*******************************************************************|
 | - The environment is a map that holds type information of         |
 |   variables (in our case values)                                  |
-| - A good practice is to have a local environment and global       | 
+| - A good practice is to have a local environment and global       |
 |   environment. This helps in implementing proper scoping rules.   |
 |*******************************************************************)
 module NameMap = Map.Make(String)
@@ -99,7 +99,7 @@ and type_of (ae: aexpr): primitiveType =
 | - To obtain maximum information from expressions and generate       |
 |   better constraints operators should not be over-loaded.           |
 | - In short, most of the type checking rules will be added here in   |
-|   the form of constraints.                                          |   
+|   the form of constraints.                                          |
 | - Further, if an expression contains sub-expressions, then          |
 |   constraints need to be obtained recursively from the              |
 |   subexpressions as well.                                           |
@@ -120,8 +120,8 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
     let opc = match op with
       | Add | Mul -> [(et1, TNum); (et2, TNum); (t, TNum)]
       (* we return et1, et2 since these are generic operators *)
-      | Gte | Lte -> [(et1, et2); (t, TBool)]
-    in 
+      | Gt | Lt -> [(et1, et2); (t, TBool)]
+    in
     (* opc appended at the rightmost since we apply substitutions right to left *)
     (collect_expr ae1) @ (collect_expr ae2) @ opc
   | AFun(id, ae, t) -> (match t with
@@ -228,6 +228,19 @@ let infer (env: environment) (e: expr) : aexpr =
   apply_expr subs annotated_expr
 ;;
 
+let rec get_ids (e: expr): id list =
+  let rec dedup = function
+   | [] -> []
+   | x :: y :: xs when x = y -> y :: dedup xs
+   | x :: xs -> x :: dedup xs in
+  let ids = match e with
+   | NumLit(_) | BoolLit(_) -> []
+   | Val(x) -> [x]
+   | Fun(x, y) -> [x] @ (get_ids y)
+   | Binop(e1, _, e2) -> (get_ids e1) @ (get_ids e2) in
+ dedup ids
+;;
+
 (* testing *)
 let debug (e: expr) (vals: string list) =
   let env = List.fold_left (fun m x -> NameMap.add x (gen_new_type ()) m) NameMap.empty vals in
@@ -238,13 +251,13 @@ let debug (e: expr) (vals: string list) =
 
 let run () =
   let testcases = [
-    (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);
-    (Binop(Binop(Val("x"), Add, Val("y")), Gte, Val("z")), ["x"; "y"; "z"]);
-    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Val("z")), ["x"; "y"; "z"]);
-    (Binop(Binop(Val("x"), Mul, Val("y")), Lte, Binop(Val("z"), Add, Val("w"))), ["x"; "y"; "z"; "w"]);
-    (Binop(Binop(Val("x"), Gte, Val("y")), Lte, Binop(Val("z"), Lte, Val("w"))), ["x"; "y"; "z"; "w"]);
-    (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);
-    (Fun("x", Binop(NumLit(20), Gte,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]
+    (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);]
+(*    (Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z")), ["x"; "y"; "z"]);*)
+(*    (Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z")), ["x"; "y"; "z"]);*)
+(*    (Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w"))), ["x"; "y"; "z"; "w"]);*)
+(*    (Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w"))), ["x"; "y"; "z"; "w"]);*)
+(*    (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);*)
+(*    (Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]*)
   in
   List.iter (fun (e, ids) -> debug e ids; print_endline "";) testcases
 ;;
