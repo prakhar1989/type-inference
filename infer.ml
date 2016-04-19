@@ -16,38 +16,38 @@ let gen_new_type () =
   incr type_variable; T(Char.escaped (Char.chr c1))
 ;;
 
-(***************************************************************|
-|*******************Annotate Expressions************************|
-|***************************************************************|
-| Arguments:                                                    |
-|   e -> An expression that has to be annotated                 |
-|   env -> An environment map that holds type information of    |
-|   user defined variables(in our case values)                  |
-|***************************************************************|
-| Returns:                                                      |
-|   returns an annotated expression of type aexpr that holds    |
-|   type information for the given expression.                  |
-|***************************************************************|
-| - This method takes every expression/sub-expression in the    |
-|   program and assigns some type information to it.            |
-| - This type information maybe something concrete like a TNum  |
-|   or it could be a unique parameterized type(placeholder) such|
-|   as 'a.                                                      |
-| - Concrete types are usually assigned when you encounter      |
-|   simple literals like 10, true and "hello" and also when the |
-|   user has explicity annotated his program with types.        |
-| - Whereas, a random type placeholder is assigned when no      |
-|   explicit information is available.                          |
-| - It may not seem so, but this is a very important function.  |
-|   It is a fundamental step in approaching and understanding   |
-|   the HMT algorithm that will follow further.                 |
-| - HMT algorithm not only infers types of variables and        |
-|   functions defined by user but also of every expression and  |
-|   sub-expression since most of the inference happens from     |
-|   analyzing these expressions only.                           |
-| - Hence, this function preps our program for the next steps of|
-|   HMT.                                                        |
-|***************************************************************)
+(*******************************************************************|
+|*********************Annotate Expressions**************************|
+|*******************************************************************|
+| Arguments:                                                        |
+|   e -> An expression that has to be annotated                     |
+|   env -> An environment map that holds type information of        |
+|   user defined variables(in our case values)                      |
+|*******************************************************************|
+| Returns:                                                          |
+|   returns an annotated expression of type aexpr that holds        |
+|   type information for the given expression.                      |
+|*******************************************************************|
+| - This method takes every expression/sub-expression in the        |
+|   program and assigns some type information to it.                |
+| - This type information maybe something concrete like a TNum      |
+|   or it could be a unique parameterized type(placeholder) such    |
+|   as 'a.                                                          |
+| - Concrete types are usually assigned when you encounter          |
+|   simple literals like 10, true and "hello" and also when the     |
+|   user has explicity annotated his program with types.            |
+| - Whereas, a random type placeholder is assigned when no          |
+|   explicit information is available.                              |
+| - It may not seem so, but this is a very important function.      |
+|   It is a fundamental step in approaching and understanding       |
+|   the HMT algorithm that will follow further.                     |
+| - HMT algorithm not only infers types of variables and            |
+|   functions defined by user but also of every expression and      |
+|   sub-expression since most of the inference happens from         |
+|   analyzing these expressions only.                               |
+| - Hence, this function preps our program for the next steps of    |
+|   HMT.                                                            |
+|*******************************************************************)
 let rec annotate_expr (e: expr) (env: environment) : aexpr =
   match e with
   | NumLit(n) -> ANumLit(n, TNum)
@@ -74,7 +74,34 @@ and type_of (ae: aexpr): primitiveType =
   | AFun(_, _, t) -> t
 ;;
 
-(* Returns constraints as a list of tuples based on valid operations.  *)
+(*********************************************************************|
+|******************************Collect********************************|
+|*********************************************************************|
+|  Arguments:                                                         |
+|     ae -> an annotated expression from which a bunch of constraints |
+|     have to obtained.                                               |
+|*********************************************************************|
+|  Returns:                                                           |
+|     returns a list of contraints.                                   |
+|*********************************************************************|
+| - A constraint is a tuple of two primitiveTypes. A strict equality  |
+|   is being imposed on the two types.                                |
+| - Constraints are generated from the expresssion being analyzed,    |
+|   for e.g. for the expression ABinop(x, Add, y, t) we can constrain |
+|   the types of x, y, and t to be TNum.                              |
+| - To obtain maximum information from expressions and generate       |
+|   better constraints operators should not be over-loaded.           |
+| - In short, most of the type checking rules will be added here in   |
+|   the form of constraints.                                          |   
+| - Further, if an expression contains sub-expressions, then          |
+|   constraints need to be obtained recursively from the              |
+|   subexpressions as well.                                           |
+| - Lastly, constraints obtained from sub-expressions should be to    |
+|   the left of the constraints obtained from the current expression  |
+|   since constraints obtained from current expression holds more     |
+|   information than constraints from subexpressions and also later   |
+|   on we will be working with these constraints from right to left.  |
+|*********************************************************************)
 let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
   match ae with
   | ANumLit(_) | ABoolLit(_) -> []  (* no constraints to impose on literals *)
