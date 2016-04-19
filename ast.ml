@@ -1,6 +1,6 @@
 type id = string
 
-type op = Add | Mul | Gte | Lte
+type op = Add | Mul | Gt | Lt
 
 type primitiveType =
   | TNum
@@ -37,7 +37,7 @@ let rec string_of_type (t: primitiveType): string =
 
 let string_of_op (op: op) =
   match op with
-  | Add -> "+" | Mul -> "*" | Lte -> "<=" | Gte -> ">=" ;;
+  | Add -> "+" | Mul -> "*" | Lt -> "<" | Gt -> ">" ;;
 
 let rec string_of_aexpr (ae: aexpr): string =
   match ae with
