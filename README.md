@@ -1,4 +1,4 @@
-Hindley Milner Type Inference
+Hindley Milner Type Inference for Beginners
 ===
 
 The [Hindley Milner Type Inference](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system) or Algorithm W is a type-inference algorithm that infers types in a programming language.
