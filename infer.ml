@@ -225,6 +225,8 @@ let infer (env: environment) (e: expr) : aexpr =
   let annotated_expr = annotate_expr e env in
   let constraints = collect_expr annotated_expr in
   let subs = unify constraints in
+  (* reset the type counter after completing inference *)
+  type_variable := (Char.code 'a');
   apply_expr subs annotated_expr
 ;;
 
@@ -242,24 +244,24 @@ let rec get_ids (e: expr): id list =
 ;;
 
 (* testing *)
-let debug (e: expr) (vals: string list) =
-  let env = List.fold_left (fun m x -> NameMap.add x (gen_new_type ()) m) NameMap.empty vals in
+let debug (e: expr) =
+  let ids = get_ids e in
+  let env = List.fold_left (fun m x -> NameMap.add x (gen_new_type ()) m) NameMap.empty ids in
   let aexpr = infer env e in
   print_endline (string_of_expr e);
-  print_endline (string_of_aexpr aexpr)
+  print_endline (string_of_aexpr aexpr);
+  print_endline "";
 ;;
 
 let run () =
+  (* a few hardcoded testcases *)
   let testcases = [
-    (Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z")), ["x"; "y"; "z"]);]
-(*    (Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z")), ["x"; "y"; "z"]);*)
-(*    (Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z")), ["x"; "y"; "z"]);*)
-(*    (Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w"))), ["x"; "y"; "z"; "w"]);*)
-(*    (Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w"))), ["x"; "y"; "z"; "w"]);*)
-(*    (Fun("x", Binop(Val("x"), Add, NumLit(10))), ["x"]);*)
-(*    (Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10)))), ["x"; "y"])]*)
-  in
-  List.iter (fun (e, ids) -> debug e ids; print_endline "";) testcases
+    Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z"));
+    Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z"));
+    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z"));
+    Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w")));
+    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w")));
+    Fun("x", Binop(Val("x"), Add, NumLit(10)));
+    Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10))))] in
+  List.iter debug testcases
 ;;
-
-run ();
