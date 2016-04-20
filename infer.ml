@@ -162,13 +162,13 @@ let rec substitute (u: primitiveType) (x: id) (t: primitiveType) : primitiveType
 ;;
 
 (******************************************************************|
-|*************************    Apply   *****************************|
+|*************************    Apply    ****************************|
 |******************************************************************|
-|Arguments:                                                        |
+| Arguments:                                                       |
 |   subs -> list of substitution rules.                            |
 |   t -> type in which substiutions have to be made.               |
 |******************************************************************|
-|Returns:                                                          |
+| Returns:                                                         |
 |   returns t after all the substitutions have been made in it     |
 |   given by all the substitution rules in subs.                   |
 |******************************************************************|
@@ -186,8 +186,33 @@ let apply (subs: substitutions) (t: primitiveType) : primitiveType =
   List.fold_right (fun (x, u) t -> substitute u x t) subs t
 ;;
 
-(* we define two mutually recursive functions that implements the unification algorithm in HMT.
-   Unify: takes a list of constraints and returns a list of substitutions *)
+
+(******************************************************************|
+|***************************   Unify   ****************************|
+|******************************************************************|
+| Arguments:                                                       |
+|   constraints -> list of constraints (tuple of 2 types)          |
+|******************************************************************|
+| Returns:                                                         |
+|   returns a list of substitutions                                |
+|******************************************************************|
+| - The unify function takes a bunch of constraints it obtained    |
+|   from the collect method and turns them into substitutions.     |
+| - It is crucial to remember that these constraints are dependent |
+|   on each other, therefore we have separate function unify_one   |
+|   and unify.                                                     |
+| - Since constraints on the right have more precedence we start   |
+|   from the rightmost constraint and unify it by calling the      |
+|   unify_one function. unify_one transforms the constraint to a   |
+|   substitution. More details given below.                        |
+| - Now these substitutions will be applied to both types of the   |
+|   second rightmost constraint following which they will be       |
+|   unified by again calling the unify_one function.               |
+| - This process of unification(unify_one) and substitution(apply) |
+|   goes on till all the constraints have been accounted for.      |
+| - In the end we get a complete list of substitutions that helps  |
+|   resolve types of all expressions in our program.               |
+|******************************************************************)
 let rec unify (constraints: (primitiveType * primitiveType) list) : substitutions =
   match constraints with
   | [] -> []
@@ -197,7 +222,28 @@ let rec unify (constraints: (primitiveType * primitiveType) list) : substitution
     (* resolve the LHS and RHS of the constraints from the previous substitutions *)
     let t1 = unify_one (apply t2 x) (apply t2 y) in
     t1 @ t2
-(* Unify_one: takes LHS and RHS of a constraint and returns a resolved substitution *)
+
+(******************************************************************|
+|*************************   Unify One  ***************************|
+|******************************************************************|
+| Arguments:                                                       |
+|   t1, t2 -> two types (one pair) that need to be unified.        |
+|******************************************************************|
+| Returns:                                                         |
+|   returns a substitution rule for the two types if one of them   |
+|   is a parameterized type else nothing.                          |
+|******************************************************************|
+| - A constraint is converted to a substitution here.              |
+| - As mentioned several times before a substitution is nothing    |
+|   but a resolution rule for a type placeholder.                  |
+| - If a constraint yields multiple type resolutions then the      |
+|   resolutions should be broken up into a list of constraints and |
+|   be passed to the unify function.                               |
+| - If both types are concrete then we need not create a new       |
+|   substitution rule.                                             |
+| - If the types are concrete but dont match then that indicates a |
+|   type mismatch. Errors can be as elaborate as required.         |
+|******************************************************************)
 and unify_one (t1: primitiveType) (t2: primitiveType) : substitutions =
   match t1, t2 with
   | TNum, TNum | TBool, TBool -> []
