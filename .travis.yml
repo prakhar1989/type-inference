@@ -7,4 +7,6 @@ install:
     - opam install ocamlfind alcotest
 script: make test
 env:
-    - OCAML_VERSION=latest OPAMYES=1 OPAMVERBOSE=1
+    - OCAML_VERSION=latest OPAMYES=1
+notifications:
+      email: false

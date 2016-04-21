@@ -10,7 +10,7 @@ This repository contains a working implementation written in OCaml to demonstrat
 Note: This is still under construction and might have bugs. Come back in a month or two when its ready.
 
 ### REPL
-The project with an interactive Read-Eval-Print-Loop (REPL) that you can use to play with the algorithm. To build the REPL, you need OCaml installed. To build the project, run `make` and if all goes well, you should be good to go.
+The project ships with an interactive Read-Eval-Print-Loop (REPL) that you can use to play with the algorithm. To build the REPL, you need OCaml installed. Compile the REPL with `make` and if all goes well, you should be good to go.
 
 ```
 $ ./repl
@@ -26,6 +26,8 @@ bool
 (bool -> bool)
 > (fun x -> x + 10) 20
 num
+> (fun f -> f 3)
+((int -> 'a) -> 'a)
 >  (fun f -> (fun g -> (fun x -> f (g x))))
 (('a -> 'b) -> (('c -> 'a) -> ('c -> 'b)))
 ```
