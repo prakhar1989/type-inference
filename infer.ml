@@ -71,7 +71,7 @@ let rec annotate_expr (e: expr) (env: environment) : aexpr =
     let ae = annotate_expr e env in
     let t = NameMap.find id env in
     AFun(id, ae, TFun(t, gen_new_type ()))
-  | App(fn, arg) -> 
+  | App(fn, arg) ->
     let afn = annotate_expr fn env in
     let aarg = annotate_expr arg env in
     AApp(afn, aarg, gen_new_type ())
@@ -132,7 +132,9 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
   | AFun(id, ae, t) -> (match t with
       | TFun(idt, ret_type) -> (collect_expr ae) @ [(type_of ae, ret_type)]
       | _ -> raise (failwith "not a function"))
-  | AApp(_) -> []
+  | AApp(fn, arg, t) -> (match (type_of fn) with
+      | TFun(argt, ret_type) -> (collect_expr fn) @ (collect_expr arg) @ [(t, ret_type); (argt, type_of arg)]
+      | _ -> raise (failwith "incorrect function application"))
 ;;
 
 
@@ -254,6 +256,7 @@ and unify_one (t1: primitiveType) (t2: primitiveType) : substitutions =
   match t1, t2 with
   | TNum, TNum | TBool, TBool -> []
   | T(x), z | z, T(x) -> [(x, z)]
+  | TFun(a, b), TFun(x, y) -> unify [(a, x); (b, y)]
   | _ -> raise (failwith "mismatched types")
 ;;
 
