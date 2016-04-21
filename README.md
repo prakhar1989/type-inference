@@ -25,3 +25,6 @@ Out of ideas? Try out a simple lambda expression: (fun x -> x + 10)
 > (fun x -> (x + 10) > 20)
 (fun x -> (((x: num) + (10: num): num) > (20: num): bool)): (num -> bool)
 ```
+
+### Thanks
+Huge thanks to these [lecture notes](http://www.cs.cornell.edu/courses/cs3110/2011sp/lectures/lec26-type-inference/type-inference.htm) for providing an understandable breakdown of the algorithm.

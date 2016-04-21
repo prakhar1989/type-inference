@@ -71,6 +71,10 @@ let rec annotate_expr (e: expr) (env: environment) : aexpr =
     let ae = annotate_expr e env in
     let t = NameMap.find id env in
     AFun(id, ae, TFun(t, gen_new_type ()))
+  | App(fn, arg) -> 
+    let afn = annotate_expr fn env in
+    let aarg = annotate_expr arg env in
+    AApp(afn, aarg, gen_new_type ())
 
 (* returns the type of an annotated expression *)
 and type_of (ae: aexpr): primitiveType =
@@ -79,6 +83,7 @@ and type_of (ae: aexpr): primitiveType =
   | AVal(_, t) -> t
   | ABinop(_, _, _, t) -> t
   | AFun(_, _, t) -> t
+  | AApp(_, _, t) -> t
 ;;
 
 (*********************************************************************|
@@ -127,6 +132,7 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
   | AFun(id, ae, t) -> (match t with
       | TFun(idt, ret_type) -> (collect_expr ae) @ [(type_of ae, ret_type)]
       | _ -> raise (failwith "not a function"))
+  | AApp(_) -> []
 ;;
 
 
@@ -259,6 +265,7 @@ let rec apply_expr (subs: substitutions) (ae: aexpr): aexpr =
   | AVal(s, t) -> AVal(s, apply subs t)
   | ABinop(e1, op, e2, t) -> ABinop(apply_expr subs e1, op, apply_expr subs e2, apply subs t)
   | AFun(id, e, t) -> AFun(id, apply_expr subs e, apply subs t)
+  | AApp(fn, arg, t) -> AApp(apply_expr subs fn, apply_expr subs arg, apply subs t)
 ;;
 
 (* runs HMTI step-by-step
@@ -285,7 +292,8 @@ let rec get_ids (e: expr): id list =
    | NumLit(_) | BoolLit(_) -> []
    | Val(x) -> [x]
    | Fun(x, y) -> [x] @ (get_ids y)
-   | Binop(e1, _, e2) -> (get_ids e1) @ (get_ids e2) in
+   | Binop(e1, _, e2) -> (get_ids e1) @ (get_ids e2)
+   | App(fn, arg) -> (get_ids fn) @ (get_ids arg) in
  dedup ids
 ;;
 
