@@ -2,6 +2,10 @@ type id = string
 
 type op = Add | Mul | Gt | Lt | And | Or
 
+module CharMap = Map.Make(String)
+
+type genericMap = int CharMap.t
+
 type primitiveType =
   | TNum
   | TBool
@@ -28,19 +32,29 @@ type aexpr =
   | AApp of aexpr * aexpr * primitiveType
 ;;
 
-let rec string_of_type (t: primitiveType): string =
-  match t with
-  | TNum -> "num" | TBool -> "bool"
-  | T(x) -> Printf.sprintf "'%s" x
-  | TFun(t1, t2) -> let st1 = string_of_type t1
-    and st2 = string_of_type t2 in
-    Printf.sprintf "(%s -> %s)" st1 st2
-;;
-
 let string_of_op (op: op) =
   match op with
   | Add -> "+" | Mul -> "*" | Lt -> "<" | Gt -> ">"
   | Or -> "||" | And -> "&&"
+;;
+
+let string_of_type (t: primitiveType) =
+  let rec aux (t: primitiveType) (chr: int) (map: genericMap) =
+    match t with
+    | TNum -> "int", chr, map
+    | TBool -> "bool", chr, map
+    | T(x) ->
+      let gen_chr, new_chr, new_map = if CharMap.mem x map
+        then Char.escaped (Char.chr (CharMap.find x map)), chr, map
+        else
+          let c = Char.escaped (Char.chr chr) in
+          c, (chr + 1), CharMap.add x chr map
+      in
+      Printf.sprintf "'%s" gen_chr, new_chr, new_map
+    | TFun(t1, t2) -> let (st1, c1, m1) = aux t1 chr map in
+      let (st2, c2, m2) = aux t2 c1 m1 in
+      (Printf.sprintf "(%s -> %s)" st1 st2), c2, m2 in
+  let s, _, _ = aux t 97 CharMap.empty in s
 ;;
 
 let rec string_of_aexpr (ae: aexpr): string =
