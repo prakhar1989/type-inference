@@ -1,6 +1,8 @@
 Hindley Milner Type Inference
 ===
 
+[![Build Status](https://travis-ci.org/prakhar1989/tyep-inference.svg)](https://travis-ci.org/prakhar1989/type-inference)
+
 The [Hindley Milner Type Inference](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system) or Algorithm W is a type-inference algorithm that infers types in a programming language.
 
 This repository contains a working implementation written in OCaml to demonstrate type-inference on a small functional language.
@@ -13,6 +15,8 @@ $ make
 ```
 
 ### Tests
+
+To run the tests, you need [Alcotest](https://github.com/mirage/alcotest) package installed. Install it by running `opam install alcotest`.
 ```
 $ make test
 ```
