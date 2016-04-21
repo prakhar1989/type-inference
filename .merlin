@@ -1,2 +1,3 @@
 S _build/
 B _build/
+PKG alcotest

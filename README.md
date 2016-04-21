@@ -34,7 +34,7 @@ bool
 > (fun x -> x + 10) 20
 num
 >  (fun f -> (fun g -> (fun x -> f (g x))))
-(('g -> 'i) -> (('f -> 'g) -> ('f -> 'i)))
+(('a -> 'b) -> (('c -> 'a) -> ('c -> 'b)))
 ```
 
 ### Thanks

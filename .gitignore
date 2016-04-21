@@ -3,14 +3,10 @@
 *.out
 *.cm*
 _build
+_tests
 *.log
 *.cache
-src/parser.ml
-src/parser.mli
-src/scanner.ml
-outputs
-.sass-cache
-venv
 *.native
+*.byte
 repl
 test

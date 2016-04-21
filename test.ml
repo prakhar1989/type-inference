@@ -1,7 +1,6 @@
 open Ast
 
 module NameMap = Map.Make(String)
-type environment = primitiveType NameMap.t
 
 let rec get_ids (e: expr): id list =
   let rec dedup = function
@@ -17,29 +16,42 @@ let rec get_ids (e: expr): id list =
  dedup ids
 ;;
 
-let debug (e: expr) =
+let debug (e: expr): string =
   let ids = get_ids e in
-  let env = List.fold_left (fun m x -> NameMap.add x (Infer.gen_new_type ()) m) NameMap.empty ids in
+  let env = ListLabels.fold_left ~init:NameMap.empty ids
+     ~f:(fun m x -> NameMap.add x (Infer.gen_new_type ()) m) in
   let aexpr = Infer.infer env e in
-  let se = string_of_expr e in
-  let expr_type = Infer.type_of aexpr in
-  let sae = string_of_type expr_type in
-  print_endline (Printf.sprintf "expr: %s\ntype: %s" se sae);
-  print_newline ();
+  string_of_type (Infer.type_of aexpr)
 ;;
 
-let run () =
-  let testcases = [
-    Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z"));
-    Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z"));
-    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z"));
-    Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w")));
-    Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w")));
-    Fun("x", Binop(Val("x"), Add, NumLit(10)));
-    Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10))));
-    Fun("f", Fun("g", Fun("x", App(Val("f"), App(Val("g"), Val("x"))))));
-  ] in
-  List.iter debug testcases
+let testcases = [|
+  NumLit(10);
+  BoolLit(true);
+  Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z"));
+  Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z"));
+  Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z"));
+  Binop(Binop(Val("x"), Mul, Val("y")), Lt, Binop(Val("z"), Add, Val("w")));
+  Binop(Binop(Val("x"), Gt, Val("y")), Lt, Binop(Val("z"), Lt, Val("w")));
+  Fun("x", Binop(Val("x"), Add, NumLit(10)));
+  Fun("x", Binop(NumLit(20), Gt,Binop(Val("x"), Add, NumLit(10))));
+  Fun("f", Fun("g", Fun("x", App(Val("f"), App(Val("g"), Val("x"))))));
+|];;
+
+let literals_check () = 
+  begin
+    Alcotest.(check string) "Integer" "int" (debug testcases.(0));
+    Alcotest.(check string) "Boolean" "bool" (debug testcases.(1));
+  end
 ;;
 
-run ();
+
+let infer_set = [
+  "Literals", `Quick, literals_check;
+]
+
+(* Run it *)
+let () =
+  Alcotest.run "Type-inference testcases" [
+    "test_1", infer_set;
+  ]
+;;
