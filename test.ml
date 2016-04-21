@@ -27,6 +27,8 @@ let debug (e: expr): string =
 let testcases = [|
   NumLit(10);
   BoolLit(true);
+  Binop(NumLit(10), Add, NumLit(2));
+  Binop(BoolLit(true), Or, BoolLit(false));
   Binop(Binop(Val("x"), Add, Val("y")), Mul, Val("z"));
   Binop(Binop(Val("x"), Add, Val("y")), Gt, Val("z"));
   Binop(Binop(Val("x"), Gt, Val("y")), Lt, Val("z"));
@@ -37,16 +39,24 @@ let testcases = [|
   Fun("f", Fun("g", Fun("x", App(Val("f"), App(Val("g"), Val("x"))))));
 |];;
 
-let literals_check () = 
+let literals_check () =
   begin
     Alcotest.(check string) "Integer" "int" (debug testcases.(0));
     Alcotest.(check string) "Boolean" "bool" (debug testcases.(1));
   end
 ;;
 
+let simple_expr_check () =
+  begin
+    Alcotest.(check string) "Integer" "int" (debug testcases.(2));
+    Alcotest.(check string) "Boolean" "bool" (debug testcases.(3));
+  end
+;;
+
 
 let infer_set = [
   "Literals", `Quick, literals_check;
+  "Simple Expr", `Quick, simple_expr_check;
 ]
 
 (* Run it *)

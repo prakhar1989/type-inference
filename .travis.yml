@@ -1,10 +1,10 @@
 language: c
 sudo: required
-before-install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-ocaml.sh
+before_install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/master/.travis-ocaml.sh
 install:
     - bash -ex .travis-ocaml.sh
     - eval $(opam config env)
-    - opam install alcotest
+    - opam install ocamlfind alcotest
 script: make test
 env:
     - OCAML_VERSION=latest
