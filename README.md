@@ -15,15 +15,15 @@ $ make
 ### Run the repl
 
 ```
-$ ./repl.native
+$ ./repl
 
 Welcome to the REPL.
 Type in expressions and let Hindley-Milner Type Inference run its magic.
 
-Out of ideas? Try out a simple lambda expression: (fun x -> x + 10)
+Out of ideas? Try out a simple lambda expression: (fun x -> x + 10) 20
 
-> (fun x -> (x + 10) > 20)
-(fun x -> (((x: num) + (10: num): num) > (20: num): bool)): (num -> bool)
+> (fun x -> (x + 10) > 20) 30
+((fun x -> (((x: num) + (10: num): num) > (20: num): bool)): (num -> bool) (30: num)): bool
 ```
 
 ### Thanks
