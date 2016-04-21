@@ -133,6 +133,22 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
   | AFun(id, ae, t) -> (match t with
       | TFun(idt, ret_type) -> (collect_expr ae) @ [(type_of ae, ret_type)]
       | _ -> raise (failwith "not a function"))
+      
+   (* 1. In application expressions, the first expression should be of TFun type or it 
+         could be a unknown type placeholder. Otherwise it's an error.
+      2. Case 1: TFun(argt, ret_type)
+         - In this case the parameter type of the function should be same as that of 
+           the argument passed in the function.
+         - Second, the return type of the function, will be equal to the return type
+           of the function application expression.
+      3. Case 2: T(_)  (unknown type placeholder)
+         - Since we do not know the type information of the first expression in an 
+           application expression, we cannot use the above approach.
+         - But we do know that the first expression has to be a function. Also a function
+           whose parameter type is same as that of argument type and that has a return type
+           same as that of the entire expression.
+         - Thus we use this information to impose a contraint on the unknown type placeholder.
+   *)
   | AApp(fn, arg, t) -> (match (type_of fn) with
       | TFun(argt, ret_type) -> (collect_expr fn) @ (collect_expr arg) @ [(t, ret_type); (argt, type_of arg)]
       | T(_) -> (collect_expr fn) @ (collect_expr arg) @ [(type_of fn, TFun(type_of arg, t))]
@@ -258,6 +274,8 @@ and unify_one (t1: primitiveType) (t2: primitiveType) : substitutions =
   match t1, t2 with
   | TNum, TNum | TBool, TBool -> []
   | T(x), z | z, T(x) -> [(x, z)]
+  
+  (* This case is particularly useful when you are calling a function that returns a function *)
   | TFun(a, b), TFun(x, y) -> unify [(a, x); (b, y)]
   | _ -> raise (failwith "mismatched types")
 ;;
