@@ -8,4 +8,6 @@ install:
 script: make test
 env:
     - OCAML_VERSION=latest
+    - OPAMYES=1
+    - OPAMVERBOSE=1
     - OCAML_VERSION=4.01
