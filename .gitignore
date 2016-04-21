@@ -13,3 +13,4 @@ outputs
 venv
 *.native
 repl
+test
