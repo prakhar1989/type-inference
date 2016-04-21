@@ -126,6 +126,7 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
       | Add | Mul -> [(et1, TNum); (et2, TNum); (t, TNum)]
       (* we return et1, et2 since these are generic operators *)
       | Gt | Lt -> [(et1, et2); (t, TBool)]
+      | And | Or -> [(et1, TBool); (et2, TBool); (t, TBool)]
     in
     (* opc appended at the rightmost since we apply substitutions right to left *)
     (collect_expr ae1) @ (collect_expr ae2) @ opc
@@ -134,6 +135,7 @@ let rec collect_expr (ae: aexpr) : (primitiveType * primitiveType) list =
       | _ -> raise (failwith "not a function"))
   | AApp(fn, arg, t) -> (match (type_of fn) with
       | TFun(argt, ret_type) -> (collect_expr fn) @ (collect_expr arg) @ [(t, ret_type); (argt, type_of arg)]
+      | T(_) -> (collect_expr fn) @ (collect_expr arg) @ [(type_of fn, TFun(type_of arg, t))]
       | _ -> raise (failwith "incorrect function application"))
 ;;
 

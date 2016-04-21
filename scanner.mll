@@ -3,6 +3,8 @@
 rule token = parse
  | [' ' '\r' '\t'] { token lexbuf }
  | ['\n']          { EOL }
+ | "true"          { TRUE }
+ | "false"         { FALSE }
  | "fun"           { FUN }
  | "+"             { PLUS }
  | "*"             { TIMES }
@@ -10,6 +12,8 @@ rule token = parse
  | ['a'-'z'] as x  { ID(Char.escaped(x)) }
  | "->"            { THINARROW }
  | ">"             { GT }
+ | "&&"            { AND }
+ | "||"            { OR }
  | "<"             { LT }
  | '('             { LPAREN }
  | ')'             { RPAREN }

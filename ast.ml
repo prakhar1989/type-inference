@@ -1,6 +1,6 @@
 type id = string
 
-type op = Add | Mul | Gt | Lt
+type op = Add | Mul | Gt | Lt | And | Or
 
 type primitiveType =
   | TNum
@@ -39,7 +39,9 @@ let rec string_of_type (t: primitiveType): string =
 
 let string_of_op (op: op) =
   match op with
-  | Add -> "+" | Mul -> "*" | Lt -> "<" | Gt -> ">" ;;
+  | Add -> "+" | Mul -> "*" | Lt -> "<" | Gt -> ">"
+  | Or -> "||" | And -> "&&"
+;;
 
 let rec string_of_aexpr (ae: aexpr): string =
   match ae with
@@ -54,7 +56,7 @@ let rec string_of_aexpr (ae: aexpr): string =
     let s1 = string_of_aexpr ae in
     let st = string_of_type t in
     Printf.sprintf "(fun %s -> %s): %s" id s1 st
-  | AApp(e1, e2, t) -> 
+  | AApp(e1, e2, t) ->
     let s1 = string_of_aexpr e1 and
     s2 = string_of_aexpr e2 and st = string_of_type t in
     Printf.sprintf "(%s %s): %s" s1 s2 st
