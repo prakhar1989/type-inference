@@ -1,5 +1,5 @@
 # Edit this for your own project dependencies
-OPAM_DEPENDS="ocamlfind alcotest"
+OPAM_DEPENDS="ocamlfind ounit alcotest"
 
 case "$OCAML_VERSION,$OPAM_VERSION" in
   4.01.0,1.0.0) ppa=avsm/ocaml41+opam10 ;;
