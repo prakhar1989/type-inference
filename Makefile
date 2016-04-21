@@ -1,5 +1,5 @@
 all:
-	ocamlbuild -j 0 -r -use-menhir repl.native
+	ocamlbuild -j 0 -r repl.native
 	@mv repl.native repl
 
 .PHONY: test
