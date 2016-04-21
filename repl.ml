@@ -33,7 +33,8 @@ let rec repl () =
   if input = "" then () else
   try
     let e = parse input in
-    print_endline (Ast.string_of_aexpr (infer e));
+    let aexpr = infer e in
+    print_endline (string_of_type (Infer.type_of aexpr));
     repl ();
   with
   | Failure(msg) -> print_endline msg; repl ()

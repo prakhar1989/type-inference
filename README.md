@@ -1,4 +1,4 @@
-Hindley Milner Type Inference for Beginners
+Hindley Milner Type Inference
 ===
 
 The [Hindley Milner Type Inference](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system) or Algorithm W is a type-inference algorithm that infers types in a programming language.
@@ -15,7 +15,6 @@ $ make
 ### Tests
 ```
 $ make test
-$ ./test
 ```
 
 ### Run the repl
@@ -26,10 +25,16 @@ $ ./repl
 Welcome to the REPL.
 Type in expressions and let Hindley-Milner Type Inference run its magic.
 
-Out of ideas? Try out a simple lambda expression: (fun x -> x + 10) 20
+Out of ideas? Try out a simple lambda expression: (fun x -> x + 10)
 
-> (fun x -> (x + 10) > 20) 30
-((fun x -> (((x: num) + (10: num): num) > (20: num): bool)): (num -> bool) (30: num)): bool
+> 10 + 20 > 40
+bool
+> (fun x -> (x && true) || false)
+(bool -> bool)
+> (fun x -> x + 10) 20
+num
+>  (fun f -> (fun g -> (fun x -> f (g x))))
+(('g -> 'i) -> (('f -> 'g) -> ('f -> 'i)))
 ```
 
 ### Thanks

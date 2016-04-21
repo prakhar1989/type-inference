@@ -23,8 +23,8 @@ let debug (e: expr) =
   let env = List.fold_left (fun m x -> NameMap.add x (Infer.gen_new_type ()) m) NameMap.empty ids in
   let aexpr = Infer.infer env e in
   print_endline (string_of_expr e);
-  print_endline (string_of_aexpr aexpr);
-  print_endline "";
+  print_endline (string_of_type (Infer.type_of aexpr));
+  print_newline ();
 ;;
 
 let run () =
