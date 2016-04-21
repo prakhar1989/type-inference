@@ -12,6 +12,12 @@ Note: This is still under construction and might have bugs. Come back in a month
 $ make
 ```
 
+### Tests
+```
+$ make test
+$ ./test
+```
+
 ### Run the repl
 
 ```
