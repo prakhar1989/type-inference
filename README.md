@@ -25,8 +25,14 @@ Before we jump on to the type-inference algorithm, we need to define the types i
 - `T -> U`: The function type where the `T` is the type of the input and `U` is the return type of the function. So for example, a square function above has a type `int -> int`.
 
 ### REPL
-The project ships with an interactive Read-Eval-Print-Loop (REPL) that you can use to play with the algorithm. To build the REPL, you need OCaml installed. Compile the REPL with `make` and if all goes well, you should be good to go.
+The project ships with an interactive Read-Eval-Print-Loop (REPL) that you can use to play with the algorithm. To build the REPL, you need OCaml installed. 
 
+If you prefer [Docker](https://www.docker.com/), there's an image that you can use to try out the REPL. Simply run
+```shell
+$ docker run -w /home/opam/type-inference -it prakhar1989/type-infer /bin/bash
+```
+
+Compile the REPL with `make` and if all goes well, you should be good to go. 
 ```
 $ ./repl
 
