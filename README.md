@@ -7,6 +7,11 @@ The [Hindley Milner Type Inference](https://en.wikipedia.org/wiki/Hindley%E2%80%
 
 This repository contains a working implementation written in OCaml to demonstrate type-inference on a small functional language.
 
+### Demo
+
+<a href="https://asciinema.org/a/c0w60mlj35keg24cvkfbj1z86?&speed=3&theme=tango&autoplay=1"><img src="https://asciinema.org/a/c0w60mlj35keg24cvkfbj1z86.png" width="636"/></a>
+
+
 ### λ-calculus
 
 The language that this implementation works on is a small subset called the [lambda calculus](https://en.wikipedia.org/wiki/Lambda_calculus). In essence, the lambda calculus allows one to express any computation purely in terms of anonymous functions and application of these functions.
