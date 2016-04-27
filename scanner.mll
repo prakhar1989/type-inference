@@ -17,4 +17,9 @@ rule token = parse
  | "<"             { LT }
  | '('             { LPAREN }
  | ')'             { RPAREN }
+ | '#'             { comment lexbuf }
  | eof             { EOL }
+
+and comment = parse
+ | '\n'            { token lexbuf }
+ | _               { comment lexbuf }

@@ -37,7 +37,9 @@ let rec repl () =
     print_endline (string_of_type (Infer.type_of aexpr));
     repl ();
   with
-  | Failure(msg) -> print_endline msg; repl ()
+  | Failure(msg) ->
+    if msg = "lexing: empty token" then repl ()
+    else print_endline msg; repl ()
   | _ -> print_endline "Error"; repl ()
 ;;
 
