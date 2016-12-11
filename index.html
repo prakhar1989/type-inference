@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <title>Type-inference by prakhar1989</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Type-inference</h1>
+        <h2>The Hindley Milner Type Inference Algorithm</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/prakhar1989/type-inference/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/prakhar1989/type-inference/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/prakhar1989/type-inference" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>
+<a id="hindley-milner-type-inference" class="anchor" href="#hindley-milner-type-inference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Hindley Milner Type Inference</h1>
+
+<p><a href="https://travis-ci.org/prakhar1989/type-inference"><img src="https://travis-ci.org/prakhar1989/type-inference.svg?branch=master" alt="Build Status"></a></p>
+
+<p>The <a href="https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system">Hindley Milner Type Inference</a> or Algorithm W is a type-inference algorithm that infers types in a programming language.</p>
+
+<p>This repository contains a working implementation written in OCaml to demonstrate type-inference on a small functional language.</p>
+
+<h3>
+<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Demo</h3>
+
+<p><a href="https://asciinema.org/a/c0w60mlj35keg24cvkfbj1z86?&amp;speed=3&amp;theme=tango&amp;autoplay=1"><img src="https://asciinema.org/a/c0w60mlj35keg24cvkfbj1z86.png" width="636"></a></p>
+
+<h3>
+<a id="λ-calculus" class="anchor" href="#%CE%BB-calculus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>λ-calculus</h3>
+
+<p>The language that this implementation works on is a small subset called the <a href="https://en.wikipedia.org/wiki/Lambda_calculus">lambda calculus</a>. In essence, the lambda calculus allows one to express any computation purely in terms of anonymous functions and application of these functions.</p>
+
+<div class="highlight highlight-source-ocaml"><pre><span class="pl-k">&gt;</span> (<span class="pl-k">fun</span> <span class="pl-v">x</span> -&gt; x <span class="pl-k">*</span> x)          <span class="pl-c">(* function declaration *)</span>
+<span class="pl-k">&gt;</span> (<span class="pl-k">fun</span> <span class="pl-v">x</span> -&gt; x <span class="pl-k">*</span> x) <span class="pl-c1">10</span>       <span class="pl-c">(* function application *)</span></pre></div>
+
+<p>In pure lambda calculus, <a href="https://en.wikipedia.org/wiki/Church_encoding#Church_numerals">numerals</a> and <a href="https://en.wikipedia.org/wiki/Church_encoding#Church_Booleans">booleans</a> are also expressed in terms of functions but to make it easy, the language supports integer and boolean literals, alongwith binary operations such as addition, multiplication, boolean and etc.</p>
+
+<h5>
+<a id="types" class="anchor" href="#types" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Types</h5>
+
+<p>Before we jump on to the type-inference algorithm, we need to define the types in our language. There are three primitive types that our language supports -</p>
+
+<ul>
+<li>
+<code>int</code>: An integer type for integer literals. Binary operations such as <code>+</code> and <code>*</code>, work only on integers and return an integer type.</li>
+<li>
+<code>bool</code>: Our language has boolean literals <code>true</code> and <code>false</code>, both of which have a <code>bool</code> type. To operate on bools <code>&amp;&amp;</code> and <code>||</code> are provided. Lastly, two additional operators <code>&gt;</code> and <code>&lt;</code> work on any type, but return a bool type.</li>
+<li>
+<code>T -&gt; U</code>: The function type where the <code>T</code> is the type of the input and <code>U</code> is the return type of the function. So for example, a square function above has a type <code>int -&gt; int</code>.</li>
+</ul>
+
+<h3>
+<a id="repl" class="anchor" href="#repl" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>REPL</h3>
+
+<p>The project ships with an interactive Read-Eval-Print-Loop (REPL) that you can use to play with the algorithm. To build the REPL, you need OCaml installed. </p>
+
+<p>If you prefer <a href="https://www.docker.com/">Docker</a>, there's an image that you can use to try out the REPL. Simply run</p>
+
+<div class="highlight highlight-source-shell"><pre>$ docker run -w /home/opam/type-inference -it prakhar1989/type-infer /bin/bash</pre></div>
+
+<p>Compile the REPL with <code>make</code> and if all goes well, you should be good to go. </p>
+
+<pre><code>$ ./repl
+
+Welcome to the REPL.
+Type in expressions and let Hindley-Milner Type Inference run its magic.
+
+Out of ideas? Try out a simple lambda expression: (fun x -&gt; x + 10)
+
+&gt; 10 + 20 &gt; 40
+bool
+&gt; (fun x -&gt; (x &amp;&amp; true) || false)
+(bool -&gt; bool)
+&gt; (fun x -&gt; x + 10) 20
+int
+&gt; (fun f -&gt; f 3)
+((int -&gt; 'a) -&gt; 'a)
+&gt;  (fun f -&gt; (fun g -&gt; (fun x -&gt; f (g x))))
+(('a -&gt; 'b) -&gt; (('c -&gt; 'a) -&gt; ('c -&gt; 'b)))
+</code></pre>
+
+<h3>
+<a id="tests" class="anchor" href="#tests" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Tests</h3>
+
+<p>To run the tests, you need <a href="https://github.com/mirage/alcotest">Alcotest</a> package installed. Install it by running <code>opam install alcotest</code>.</p>
+
+<pre><code>$ make test
+</code></pre>
+
+<h3>
+<a id="thanks" class="anchor" href="#thanks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Thanks</h3>
+
+<p>Huge thanks to these <a href="http://www.cs.cornell.edu/courses/cs3110/2011sp/lectures/lec26-type-inference/type-inference.htm">lecture notes</a> for providing an understandable breakdown of the algorithm.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
